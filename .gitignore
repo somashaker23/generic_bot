@@ -1,3 +1,21 @@
+
+
+
+
+*.pyc
+*.pyo
+*.pyd
+.env
+.env
+.venv/
+dist/
+build/
+migrations/versions/*.py
+
+
+
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]

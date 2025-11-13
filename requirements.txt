@@ -1,1 +1,7 @@
-fastapi~=0.121.1
+fastapi
+uvicorn[standard]
+psycopg2-binary
+sqlalchemy
+alembic
+pydantic-settings
+redis
