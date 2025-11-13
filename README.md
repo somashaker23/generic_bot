@@ -1,4 +1,4 @@
-# generic-bot
+# generic-bot (python:3.13)
 
 FastAPI backend with PostgreSQL, Redis, Alembic migrations, and CI-ready structure.
 Run locally:
