@@ -6,7 +6,7 @@
 *.pyo
 *.pyd
 .env
-.env
+.env.test
 .venv/
 dist/
 build/
@@ -223,3 +223,4 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+/.idea/data_source_mapping.xml

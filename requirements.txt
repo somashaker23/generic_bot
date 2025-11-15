@@ -5,3 +5,5 @@ sqlalchemy
 alembic
 pydantic-settings
 redis
+
+pytest

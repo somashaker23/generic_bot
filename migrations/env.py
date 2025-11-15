@@ -1,29 +1,55 @@
+import os
+import sys
 from logging.config import fileConfig
+
 from sqlalchemy import engine_from_config, pool
 from alembic import context
-from app.db.session import DATABASE_URL
+
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.insert(0, BASE_DIR)
 
 config = context.config
 fileConfig(config.config_file_name)
+
+from app.db.session import DATABASE_URL
+
+from app.db.base import Base
+# This will import all models from base.py to alembic
+# import model modules so Base.metadata populates
+
+target_metadata = Base.metadata
 config.set_main_option("sqlalchemy.url", DATABASE_URL)
 
-target_metadata = None
 
 def run_migrations_offline():
-    context.configure(url=DATABASE_URL, literal_binds=True, compare_type=True)
+    url = config.get_main_option("sqlalchemy.url")
+    context.configure(
+        url=url,
+        literal_binds=True,
+        compare_type=True,
+    )
+
     with context.begin_transaction():
         context.run_migrations()
 
+
 def run_migrations_online():
     connectable = engine_from_config(
-        {"sqlalchemy.url": DATABASE_URL},
+        config.get_section(config.config_ini_section),
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
     )
+
     with connectable.connect() as connection:
-        context.configure(connection=connection, compare_type=True)
+        context.configure(
+            connection=connection,
+            target_metadata=target_metadata,
+            compare_type=True,
+        )
+
         with context.begin_transaction():
             context.run_migrations()
+
 
 if context.is_offline_mode():
     run_migrations_offline()
