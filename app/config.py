@@ -1,4 +1,6 @@
 from pydantic_settings import BaseSettings
+import os
+
 
 class Settings(BaseSettings):
     APP_NAME: str
@@ -13,7 +15,14 @@ class Settings(BaseSettings):
     REDIS_HOST: str
     REDIS_PORT: int
 
+    API_PORT: int
+
     class Config:
         env_file = ".env"
 
-settings = Settings()
+
+# If running under pytest, override
+if "PYTEST_CURRENT_TEST" in os.environ:
+    settings = Settings(_env_file=".env.test")
+else:
+    settings = Settings()
