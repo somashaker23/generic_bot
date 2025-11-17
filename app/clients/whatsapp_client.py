@@ -10,7 +10,7 @@ class WhatsAppClient:
         self.token = settings.WHATSAPP_API_TOKEN
 
     def send_message(self, to: str, message: str):
-        url = f"{self.base_url}/${self.phone_number}/messages"
+        url = f"{self.base_url}/{self.phone_number}/messages"
         headers = {
             "Authorization": f"Bearer {self.token}",
             "Content-Type": "application/json"

@@ -1,16 +1,22 @@
-from fastapi import APIRouter, Request, HTTPException
+from fastapi import APIRouter, Request, HTTPException, Depends
+from sqlalchemy.orm import Session
 
+from app.config import settings
 from app.connector.whatsapp_connector import WhatsAppConnector
-from app.repositories.whatsapp_repository import WhatsAppRepository
-from app.db.session import SessionLocal
-from config import settings
+from app.db.deps import get_db
+from app.repositories.deps import get_whatsapp_repository
+from repositories.whatsapp_repository import WhatsAppRepository
 
 router = APIRouter()
 connector = WhatsAppConnector()
 
 
 @router.post("/whatsapp")
-async def whatsapp_webhook(request: Request):
+async def whatsapp_webhook(
+    request: Request,
+    db: Session = Depends(get_db),
+        whatsapp_repo: WhatsAppRepository = Depends(get_whatsapp_repository),
+):
     payload = await request.json()
 
     if not connector.validate(request):
@@ -23,17 +29,19 @@ async def whatsapp_webhook(request: Request):
     if not user_id or not message:
         raise HTTPException(status_code=400, detail="Missing fields")
 
-    db = SessionLocal()
-    WhatsAppRepository().log(db, user_id, message, direction="incoming")
+    # Log incoming
+    whatsapp_repo.log(db, user_id, message, direction="incoming")
 
-    # Auto-reply (or call flow engine later)
+    # Auto-reply
     connector.send_message(user_id, "Message received")
 
-    WhatsAppRepository().log(db, user_id, "Message received", direction="outgoing")
+    # Log outgoing
+    whatsapp_repo.log(db, user_id, "Message received", direction="outgoing")
 
     return {"status": "ok"}
 
 
+
 @router.get("/webhook")
 def verify_webhook(request: Request):
-    connector.verify_webhook(request, settings.VERIFY_TOKEN)
+    return connector.verify_webhook(request.query_params, settings.VERIFY_TOKEN)

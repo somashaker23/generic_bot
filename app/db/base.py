@@ -1,6 +1,6 @@
 from .base_class import Base
 
-# These imports are need to load them when Base model is loaded
+# These imports are needed to load them when Base model is loaded
 from app.models.car_inventory import Car
 from app.models.car_image import CarImage
 from app.models.callback_request import CallbackRequest
