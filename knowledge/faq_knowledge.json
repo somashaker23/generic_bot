@@ -1,0 +1,18 @@
+[
+  {
+    "patterns": ["store hours", "opening hours", "timings", "when are you open"],
+    "response": "Our showroom is open from 9 AM to 8 PM, Monday to Sunday."
+  },
+  {
+    "patterns": ["address", "location", "where are you located"],
+    "response": "We are located at: XYZ Main Road, Near Metro Station."
+  },
+  {
+    "patterns": ["test drive", "book test drive", "schedule test drive"],
+    "response": "You can book a test drive by sharing your name and preferred car model."
+  },
+  {
+    "patterns": ["contact number", "phone number", "call"],
+    "response": "You can reach us at +91-9876543210."
+  }
+]
