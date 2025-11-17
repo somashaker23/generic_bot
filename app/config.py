@@ -16,6 +16,10 @@ class Settings(BaseSettings):
     REDIS_PORT: int
 
     API_PORT: int
+    WHATSAPP_API_URL: str
+    WHATSAPP_API_TOKEN: str
+    WHATSAPP_PHONE_NUMBER: str
+    VERIFY_TOKEN: str
 
     class Config:
         env_file = ".env"

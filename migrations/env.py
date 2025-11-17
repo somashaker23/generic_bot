@@ -12,7 +12,6 @@ config = context.config
 fileConfig(config.config_file_name)
 
 from app.db.session import DATABASE_URL
-
 from app.db.base import Base
 # This will import all models from base.py to alembic
 # import model modules so Base.metadata populates
