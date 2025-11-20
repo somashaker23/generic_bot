@@ -1,6 +1,7 @@
 from app.services.intent_classifier import IntentClassifier
 from app.services.entity_extractor import EntityExtractor
 
+
 class IntentEngine:
 
     def __init__(self):

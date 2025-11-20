@@ -5,6 +5,7 @@ class EntityExtractor:
 
     def __init__(self):
         # Later load from DB
+        self.days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
         self.models = [
             "creta", "venue", "i20", "i10", "verna", "alcazar", "exter"
         ]
@@ -25,8 +26,7 @@ class EntityExtractor:
         if "tomorrow" in text or "tmrw" in text:
             return "tomorrow"
 
-        days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
-        for d in days:
+        for d in self.days:
             if d in text:
                 return d.capitalize()
 
