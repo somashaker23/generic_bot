@@ -40,11 +40,13 @@ async def whatsapp_webhook(
         whatsapp_repo.log(db, user_id, faq_reply, direction="outgoing")
         return {"status": "ok", "type": "faq"}
 
+    intent_result = intent_router.handle(message)
+    reply = intent_result["reply"]
     # Auto-reply fall back
-    connector.send_message(user_id, "Message received")
+    connector.send_message(user_id, reply)
 
     # Log outgoing
-    whatsapp_repo.log(db, user_id, "Message received", direction="outgoing")
+    whatsapp_repo.log(db, user_id, reply, direction="outgoing")
 
     return {"status": "ok"}
 
