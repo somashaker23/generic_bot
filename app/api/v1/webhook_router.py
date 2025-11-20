@@ -6,12 +6,14 @@ from app.connector.whatsapp_connector import WhatsAppConnector
 from app.db.deps import get_db
 from app.repositories.deps import get_whatsapp_repository
 from app.repositories.whatsapp_repository import WhatsAppRepository
+from app.services.conversation_flow import ConversationFlow
 from app.services.knowledge_engine import KnowledgeEngine
 from app.services import intent_router
 
 router = APIRouter()
 connector = WhatsAppConnector()
 knowledge_engine = KnowledgeEngine()
+flow = ConversationFlow()
 
 
 @router.post("/whatsapp")
@@ -41,8 +43,9 @@ async def whatsapp_webhook(
         whatsapp_repo.log(db, user_id, faq_reply, direction="outgoing")
         return {"status": "ok", "type": "faq"}
 
-    intent_result = intent_router.handle(message)
-    reply = intent_result["reply"]
+    result = flow.process(user_id, message)
+    reply = result["reply"]
+
     # Auto-reply fall back
     connector.send_message(user_id, reply)
 

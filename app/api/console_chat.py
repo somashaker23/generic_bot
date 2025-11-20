@@ -1,12 +1,12 @@
 from app.connector.console_connector import ConsoleConnector
+from app.services.conversation_flow import ConversationFlow
 from app.services.knowledge_engine import KnowledgeEngine
-from app.services.intent_router import IntentRouter
 
 
 def start_console_chat():
     connector = ConsoleConnector()
     faq_engine = KnowledgeEngine()
-    intent_router = IntentRouter()
+    flow = ConversationFlow()
 
     print("Console Bot Chat Started (type 'exit' to stop)\n")
 
@@ -24,5 +24,5 @@ def start_console_chat():
             continue
 
         # 2. Intent flow
-        result = intent_router.handle(user_text)
+        result = flow.process("user_id-1", user_text)
         connector.send_message("console_user", result["reply"])
