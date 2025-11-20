@@ -5,8 +5,8 @@ from app.config import settings
 from app.connector.whatsapp_connector import WhatsAppConnector
 from app.db.deps import get_db
 from app.repositories.deps import get_whatsapp_repository
-from repositories.whatsapp_repository import WhatsAppRepository
-from services.knowledge_engine import KnowledgeEngine
+from app.repositories.whatsapp_repository import WhatsAppRepository
+from app.services.knowledge_engine import KnowledgeEngine
 
 router = APIRouter()
 connector = WhatsAppConnector()
@@ -37,7 +37,7 @@ async def whatsapp_webhook(
 
     if faq_reply:
         connector.send_message(user_id, faq_reply)
-        WhatsAppRepository().log(db, user_id, faq_reply, direction="outgoing")
+        whatsapp_repo.log(db, user_id, faq_reply, direction="outgoing")
         return {"status": "ok", "type": "faq"}
 
     # Auto-reply fall back

@@ -6,17 +6,28 @@ class KnowledgeEngine:
 
     def __init__(self):
         base_path = os.path.dirname(os.path.abspath(__file__))
-        path = os.path.join(os.path.dirname(base_path), "../knowledge/faq_knowledge.json")
-        with open(path, "r") as f:
-            self.faq_data = json.load(f)
+        path = os.path.join(os.path.dirname(os.path.dirname(base_path)), "knowledge/faq_knowledge.json")
+        try:
+            with open(path, "r") as f:
+                self.faq_data = json.load(f)
+        except FileNotFoundError:
+            raise FileNotFoundError(f"FAQ knowledge file not found at {path}")
+        except json.JSONDecodeError as e:
+            raise ValueError(f"Invalid JSON in FAQ knowledge file: {e}")
 
     def search(self, text: str):
+        if not text:
+            return None
         text = text.lower()
 
         for item in self.faq_data:
-            for pattern in item["patterns"]:
+            patterns = item.get("patterns", [])
+            response = item.get("response")
+            if not patterns or not response:
+                continue
+            for pattern in patterns:
                 if pattern in text:
-                    return item["response"]
+                    return response
 
         return None
 
