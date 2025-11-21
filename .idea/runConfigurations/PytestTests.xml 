@@ -1,0 +1,27 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Pytest Tests" type="PythonConfigurationType" factoryName="py.test">
+    <module name="generic_bot" />
+    <option name="INTERPRETER_OPTIONS" value="" />
+    <option name="PARENT_ENVS" value="true" />
+    <option name="SDK_HOME" value="" />
+
+    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+    <option name="IS_MODULE_SDK" value="true" />
+
+    <option name="ADDITIONAL_ARGS" value="-q" />
+
+    <!-- ENV variables passed to the test runner -->
+    <envs>
+      <env name="ENV" value="test" />
+    </envs>
+
+    <option name="SCRIPT_NAME" value="" />
+    <option name="TEST_TYPE" value="all" />
+    <option name="PATTERN" value="" />
+    <option name="USE_PATTERN" value="false" />
+
+    <method v="2">
+      <option name="RunConfigurationTask" enabled="true" />
+    </method>
+  </configuration>
+</component>
