@@ -18,14 +18,22 @@ class ContextManager:
         self.r = redis.Redis(
             host=settings.REDIS_HOST,
             port=settings.REDIS_PORT,
+            password=getattr(settings, "REDIS_PASSWORD", None),
+            username=getattr(settings, "REDIS_USERNAME", None),
             decode_responses=True
         )
 
-    def get(self, user_id: str):
+    def get(self, user_id: str) -> dict:
         data = self.r.get(f"ctx:{user_id}")
-        return json.loads(data) if data else {}
+        if not data:
+            return {}
+        try:
+            return json.loads(data)
+        except json.JSONDecodeError:
+            return {}
 
     def save(self, user_id: str, context: dict, ttl=900):
+        # Consider using Redis transactions or a read-modify-write pattern with optimistic locking to prevent data loss in concurrent scenarios.
         self.r.set(
             f"ctx:{user_id}",
             json.dumps(context),

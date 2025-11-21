@@ -44,8 +44,14 @@ class ConversationFlow:
         # All data available → finalize flow
         handler = self.handlers.get(context.get("intent"))
         if handler:
-            reply = handler.handle(context)
-            self.ctx.clear(user_id)
+            try:
+                reply = handler.handle(context)
+            except Exception as e:
+                import logging
+                logging.error(f"Error in handler {context.get('intent')}: {e}")
+                reply = "Sorry, something went wrong while processing your request."
+            finally:
+                self.ctx.clear(user_id)
             return {"reply": reply, "context": context}
 
         # Unknown

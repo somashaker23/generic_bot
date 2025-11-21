@@ -1,6 +1,9 @@
+from typing import Optional
+
+
 class IntentRefiner:
 
-    def missing_info(self, intent: str, ctx: dict):
+    def missing_info(self, intent: str, ctx: dict)-> Optional[str]:
         if intent == "book_test_drive":
             if not ctx.get("model"):
                 return "Sure! Which car model would you like to test drive?"

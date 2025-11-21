@@ -8,7 +8,6 @@ from app.repositories.deps import get_whatsapp_repository
 from app.repositories.whatsapp_repository import WhatsAppRepository
 from app.services.conversation_flow import ConversationFlow
 from app.services.knowledge_engine import KnowledgeEngine
-from app.services import intent_router
 
 router = APIRouter()
 connector = WhatsAppConnector()
