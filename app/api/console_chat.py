@@ -16,5 +16,5 @@ def start_console_chat():
             break
 
         #  Intent flow
-        result = flow.process("user_id-1", user_text)
+        result = flow.handle_message("user_id-1", user_text)
         connector.send_message("console_user", result["reply"])

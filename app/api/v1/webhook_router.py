@@ -11,7 +11,6 @@ from app.services.knowledge_engine import KnowledgeEngine
 
 router = APIRouter()
 connector = WhatsAppConnector()
-knowledge_engine = KnowledgeEngine()
 flow = ConversationFlow()
 
 
@@ -35,14 +34,8 @@ async def whatsapp_webhook(
 
     # Log incoming
     whatsapp_repo.log(db, user_id, message, direction="incoming")
-    faq_reply = knowledge_engine.search(message)
 
-    if faq_reply:
-        connector.send_message(user_id, faq_reply)
-        whatsapp_repo.log(db, user_id, faq_reply, direction="outgoing")
-        return {"status": "ok", "type": "faq"}
-
-    result = flow.process(user_id, message)
+    result = flow.handle_message(user_id, message)
     reply = result["reply"]
 
     # Auto-reply fall back
