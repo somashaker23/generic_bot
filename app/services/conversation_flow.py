@@ -1,3 +1,5 @@
+from app.actions.action_router import ActionRouter
+from app.db.session import SessionLocal
 from app.services.message_sanitizer import MessageSanitizer
 from app.services.humor_responder import HumorResponder
 from app.services.knowledge_engine import KnowledgeEngine
@@ -19,6 +21,7 @@ class ConversationFlow:
         self.engine = IntentEngine()
         self.ctx = ContextManager()
         self.refiner = IntentRefiner()
+        self.actions = ActionRouter()
 
         self.handlers = {
             "book_test_drive": TestDriveHandler(),
@@ -88,8 +91,14 @@ class ConversationFlow:
 
         if handler:
             reply = handler.handle(context)
+            db = SessionLocal()
+            result = self.actions.execute(intent, context, db)
             self.ctx.clear(user_id)
-            return {"reply": reply, "context": context}
+            return {
+                "reply": reply,
+                "context": context,
+                "action_result": result
+            }
 
         # ─────────────────────────────────────────────
         # 6) FALLBACK
