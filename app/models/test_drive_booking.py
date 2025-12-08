@@ -3,10 +3,10 @@ from sqlalchemy import (
     Column, Integer, String, DateTime, Boolean
 )
 
-from app.db.base import Base
+from app.db.base_class import Base
 
 
-class TestDrive(Base):
+class TestDriveBooking(Base):
     __tablename__ = "test_drives"
 
     id = Column(Integer, primary_key=True, index=True)
