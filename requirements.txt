@@ -5,5 +5,7 @@ sqlalchemy
 alembic
 pydantic-settings
 redis
+requests
+gradio
 
 pytest
