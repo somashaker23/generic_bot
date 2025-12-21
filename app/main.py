@@ -3,12 +3,14 @@ from fastapi import FastAPI
 
 from app.api.v1.health import router as health_router
 from app.api.v1.webhook_router import router as whatsapp_webhook
+from app.api.v1.rest_api import router as rest_api_router
 from app.gradio_chat import get_gradio_app
 
 app = FastAPI()
 
 app.include_router(health_router, prefix="", tags=["health"])
 app.include_router(whatsapp_webhook, prefix="/webhook", tags=["whatsapp"])
+app.include_router(rest_api_router, prefix="/api", tags=["rest"])
 
 
 gradio_app = get_gradio_app()
