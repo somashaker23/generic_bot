@@ -17,7 +17,8 @@ class IntentClassifier:
         self.keyword_patterns = {
             Intent.GOLD_RATE: [
                 "gold rate", "gold price", "gold cost", "price of gold",
-                "how much is gold", "gold today", "gold per gram"
+                "how much is gold", "gold today", "gold per gram",
+                "how much for", "gold"
             ],
             Intent.SILVER_RATE: [
                 "silver rate", "silver price", "silver cost", "price of silver",
@@ -33,7 +34,8 @@ class IntentClassifier:
             ],
             Intent.STORE_ADDRESS: [
                 "store address", "location", "where are you", "address",
-                "store location", "shop address", "directions"
+                "store location", "shop address", "directions", "where is your store",
+                "where is the store"
             ],
             Intent.GREETING: [
                 "hello", "hi", "hey", "good morning", "good afternoon",
@@ -41,7 +43,9 @@ class IntentClassifier:
             ],
             Intent.TRANSFER_REQUEST: [
                 "talk to agent", "speak to human", "connect to agent",
-                "human agent", "customer service", "representative"
+                "human agent", "customer service", "representative",
+                "connect me to a human", "talk to a human", "want to talk to an agent",
+                "i want to talk to", "speak to someone"
             ],
         }
     
@@ -63,7 +67,19 @@ class IntentClassifier:
             return Intent.FALLBACK, 0.0
         
         # Rule-based exact keyword matching
-        for intent, keywords in self.keyword_patterns.items():
+        # Check in priority order (more specific patterns first)
+        priority_order = [
+            Intent.TRANSFER_REQUEST,
+            Intent.GOLD_RATE,
+            Intent.SILVER_RATE,
+            Intent.PLATINUM_RATE,
+            Intent.STORE_TIMINGS,
+            Intent.STORE_ADDRESS,
+            Intent.GREETING,
+        ]
+        
+        for intent in priority_order:
+            keywords = self.keyword_patterns.get(intent, [])
             for keyword in keywords:
                 if keyword in text_lower:
                     return intent, 1.0
