@@ -1,6 +1,6 @@
 from nlu.intents import Intent
 from conversation.context import ConversationContext
-from nlu.entities import ExtractedEntities, MetalType
+from nlu.entities import ExtractedEntities, MetalType, Purity
 from contracts.outgoing_response import OutgoingResponse, ActionSignal
 from handlers.base_handler import BaseHandler
 from services.rate_service import RateService
@@ -39,7 +39,6 @@ class GoldRateHandler(BaseHandler):
         
         # Purity is optional - if not provided, use 22K as default
         if not entities.purity:
-            from nlu.entities import Purity
             entities.purity = Purity.GOLD_22K
         
         # Weight has default of 1 gram, so always available
