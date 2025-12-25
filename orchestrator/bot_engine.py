@@ -37,8 +37,21 @@ class BotEngine:
     def __init__(
         self,
         rate_service: RateService = None,
-        store_service: StoreService = None
+        store_service: StoreService = None,
+        use_three_layer_pipeline: bool = False,
+        enable_local_model: bool = False,
+        enable_heavy_llm: bool = False
     ):
+        """
+        Initialize BotEngine with optional three-layer NLU pipeline.
+        
+        Args:
+            rate_service: Service for rate calculations
+            store_service: Service for store information
+            use_three_layer_pipeline: Enable three-layer NLU pipeline (default: False)
+            enable_local_model: Enable local model fallback (default: False)
+            enable_heavy_llm: Enable heavy LLM fallback (default: False)
+        """
         # Initialize services
         self.rate_service = rate_service or RateService()
         self.store_service = store_service or StoreService()
@@ -50,6 +63,28 @@ class BotEngine:
         # Initialize NLU components
         self.intent_classifier = IntentClassifier()
         self.entity_resolver = EntityResolver()
+        
+        # Initialize three-layer pipeline if enabled
+        self.use_three_layer_pipeline = use_three_layer_pipeline
+        self.three_layer_pipeline = None
+        
+        if use_three_layer_pipeline:
+            from nlu.three_layer_pipeline import ThreeLayerNLUPipeline
+            from nlu.local_model_classifier import LocalModelClassifier
+            from nlu.heavy_llm_classifier import HeavyLLMClassifier
+            
+            # Initialize optional classifiers
+            local_model = LocalModelClassifier() if enable_local_model else None
+            heavy_llm = HeavyLLMClassifier() if enable_heavy_llm else None
+            
+            self.three_layer_pipeline = ThreeLayerNLUPipeline(
+                fast_classifier=self.intent_classifier,
+                fast_entity_resolver=self.entity_resolver,
+                local_model_classifier=local_model,
+                heavy_llm_classifier=heavy_llm,
+                enable_local_model=enable_local_model,
+                enable_heavy_llm=enable_heavy_llm
+            )
         
         # Initialize handlers
         self.handlers = {
@@ -95,6 +130,8 @@ class BotEngine:
         """
         Process incoming event through the full pipeline.
         
+        Uses three-layer NLU pipeline if enabled, otherwise uses standard pipeline.
+        
         Args:
             event: Normalized incoming event
         
@@ -110,14 +147,30 @@ class BotEngine:
         context = self._get_or_create_context(event)
         context.update_from_event(event)
         
-        # Step 2: Classify intent
-        intent, confidence = self.intent_classifier.get_intent_confidence(event.user_text)
+        # Step 2: Classify intent and resolve entities
+        if self.use_three_layer_pipeline and self.three_layer_pipeline:
+            # Use three-layer pipeline
+            nlu_result = self.three_layer_pipeline.process(event.user_text)
+            intent = nlu_result.intent
+            confidence = nlu_result.confidence
+            entities = nlu_result.entities
+            
+            # Store NLU metadata in context
+            context.nlu_metadata = {
+                "nlu_path": nlu_result.path_taken.value,
+                "nlu_processing_time_ms": nlu_result.processing_time_ms,
+                "nlu_model_used": nlu_result.model_used,
+                "nlu_confidence": confidence
+            }
+        else:
+            # Use standard pipeline
+            intent, confidence = self.intent_classifier.get_intent_confidence(event.user_text)
+            entities = self.entity_resolver.resolve(event.user_text)
+            context.nlu_metadata = {}
+        
         context.last_intent = intent.value
         
-        # Step 3: Resolve entities
-        entities = self.entity_resolver.resolve(event.user_text)
-        
-        # Step 4: Select handler
+        # Step 3: Select handler
         handler = self.handlers.get(intent)
         if not handler:
             # Fallback to fallback handler if no handler found
@@ -164,3 +217,26 @@ class BotEngine:
         """Clear context for a session"""
         if session_id in self.contexts:
             del self.contexts[session_id]
+    
+    def get_pipeline_statistics(self) -> Dict:
+        """
+        Get three-layer pipeline statistics.
+        
+        Returns:
+            Dict with usage statistics and performance metrics,
+            or None if three-layer pipeline is not enabled
+        """
+        if not self.use_three_layer_pipeline or not self.three_layer_pipeline:
+            return {
+                "enabled": False,
+                "message": "Three-layer pipeline is not enabled"
+            }
+        
+        stats = self.three_layer_pipeline.get_statistics()
+        stats["enabled"] = True
+        return stats
+    
+    def reset_pipeline_statistics(self) -> None:
+        """Reset three-layer pipeline statistics"""
+        if self.use_three_layer_pipeline and self.three_layer_pipeline:
+            self.three_layer_pipeline.reset_statistics()

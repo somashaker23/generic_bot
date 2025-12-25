@@ -16,6 +16,9 @@ class ConversationContext:
     turn_count: int = 0
     clarification_attempts: int = 0
     
+    # NLU pipeline metadata (for three-layer pipeline)
+    nlu_metadata: dict = field(default_factory=dict)
+    
     # Maximum thresholds for transfer
     MAX_CLARIFICATION_ATTEMPTS = 2
     MAX_TURN_COUNT = 20
