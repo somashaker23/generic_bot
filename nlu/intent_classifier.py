@@ -1,4 +1,4 @@
-from typing import Tuple, List
+from typing import Tuple, List, Optional
 from nlu.intents import Intent
 
 
@@ -102,7 +102,8 @@ class IntentClassifier:
         
         Rules:
         - Exact keyword → direct intent with high confidence (1.0)
-        - Otherwise semantic match (placeholder - returns fallback)
+        - Semantic matching → intent with medium confidence (0.8)
+        - Otherwise fallback with low confidence (0.3)
         - Confidence < 0.6 → fallback
         
         Returns:
@@ -137,9 +138,76 @@ class IntentClassifier:
                 if keyword in text_lower:
                     return intent, 1.0
         
-        # Semantic matching would go here
-        # For now, return fallback with low confidence
+        # Semantic matching - check for intent-relevant terms
+        semantic_match, confidence = self._semantic_match(text_lower)
+        if semantic_match:
+            return semantic_match, confidence
+        
+        # No match found
         return Intent.FALLBACK, 0.3
+    
+    def _semantic_match(self, text: str) -> Tuple[Optional[Intent], float]:
+        """
+        Perform semantic matching for natural language variations.
+        Checks for combinations of intent indicators and metal/service types.
+        
+        Returns:
+            Tuple of (Intent or None, confidence_score)
+        """
+        # Intent indicators (English + Hindi)
+        rate_indicators = [
+            "how much", "what is", "what's", "tell me", "cost", "price", "worth", "value",
+            "कितना", "क्या", "बताओ", "बताइए", "कीमत"  # Hindi
+        ]
+        timing_indicators = [
+            "when", "time", "hour", "open", "close",
+            "कब", "समय", "खुला", "बंद"  # Hindi
+        ]
+        location_indicators = [
+            "where", "address", "location", "find",
+            "कहां", "कहाँ", "पता", "कैसे"  # Hindi
+        ]
+        
+        # Metal types
+        has_gold = any(word in text for word in ["gold", "sona", "sone", "सोना", "सोने"])
+        has_silver = any(word in text for word in ["silver", "chandi", "चांदी"])
+        has_platinum = any(word in text for word in ["platinum", "प्लैटिनम"])
+        
+        # Product types
+        has_coin = any(word in text for word in ["coin", "coins", "biscuit", "सिक्का", "सिक्के"])
+        has_chain = "chain" in text or "चेन" in text
+        
+        # Check for rate queries
+        has_rate_indicator = any(ind in text for ind in rate_indicators)
+        
+        if has_rate_indicator:
+            # Gold rate query
+            if has_gold:
+                if has_coin:
+                    return Intent.GOLD_COIN_RATE, 0.8
+                return Intent.GOLD_RATE, 0.8
+            # Silver rate query
+            elif has_silver:
+                return Intent.SILVER_RATE, 0.8
+            # Platinum rate query
+            elif has_platinum:
+                return Intent.PLATINUM_RATE, 0.8
+        
+        # Check for timing queries (more flexible - doesn't require "store" word)
+        has_timing_indicator = any(ind in text for ind in timing_indicators)
+        if has_timing_indicator:
+            # If asking about timing/hours, likely about store
+            if any(word in text for word in ["store", "shop", "dukan", "स्टोर", "दुकान", "you", "your"]):
+                return Intent.STORE_TIMINGS, 0.8
+        
+        # Check for location queries (more flexible)
+        has_location_indicator = any(ind in text for ind in location_indicators)
+        if has_location_indicator:
+            if any(word in text for word in ["store", "shop", "dukan", "स्टोर", "दुकान", "you", "your"]):
+                return Intent.STORE_ADDRESS, 0.8
+        
+        # No semantic match
+        return None, 0.0
     
     def _is_multi_intent(self, text: str) -> bool:
         """
