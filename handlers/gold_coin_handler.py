@@ -1,14 +1,14 @@
 from nlu.intents import Intent
 from conversation.context import ConversationContext
-from nlu.entities import ExtractedEntities, MetalType, Purity
+from nlu.entities import ExtractedEntities, MetalType, ProductType
 from contracts.outgoing_response import OutgoingResponse, ActionSignal
 from handlers.base_handler import BaseHandler
 from services.rate_service import RateService
 from localization.language_service import ResponseTranslator
 
 
-class GoldRateHandler(BaseHandler):
-    """Handler for GOLD_RATE intent"""
+class GoldCoinHandler(BaseHandler):
+    """Handler for GOLD_COIN_RATE intent - handles gold coins and biscuits with GST"""
     
     def __init__(self, rate_service: RateService = None, translator: ResponseTranslator = None):
         self.rate_service = rate_service or RateService()
@@ -16,7 +16,7 @@ class GoldRateHandler(BaseHandler):
     
     def can_handle(self, intent: Intent) -> bool:
         """Check if this handler can handle the intent"""
-        return intent == Intent.GOLD_RATE
+        return intent == Intent.GOLD_COIN_RATE
     
     def handle(
         self,
@@ -24,28 +24,27 @@ class GoldRateHandler(BaseHandler):
         entities: ExtractedEntities
     ) -> OutgoingResponse:
         """
-        Handle GOLD_RATE intent.
+        Handle GOLD_COIN_RATE intent.
         
         Logic:
-        - Check missing entities (purity optional, weight has default)
-        - Check for 18K chain constraint
-        - Ask clarification if needed
-        - Else compute rate in user's language
-        - Return response + CONTINUE
+        - Gold coins/biscuits are only available in 24K (999 purity)
+        - 3% GST is applicable
+        - Calculate rate with GST
         """
-        language = context.language
+        from nlu.entities import Purity
         
-        # Metal type should be gold (but might not be extracted if just asking "rate")
+        # Ensure metal type is gold
         if not entities.metal_type:
             entities.metal_type = MetalType.GOLD
         
-        # Purity is optional - if not provided, use 22K as default
-        if not entities.purity:
-            entities.purity = Purity.GOLD_22K
+        # Gold coins/biscuits are only in 24K
+        entities.purity = Purity.GOLD_24K
         
-        # Weight has default of 1 gram, so always available
+        # Set product type if not detected
+        if not entities.product_type:
+            entities.product_type = ProductType.COIN
         
-        # All required info available, calculate rate
+        # Calculate rate with GST
         total_price, formatted_response = self.rate_service.calculate_rate(
             metal="gold",
             purity=entities.purity,
@@ -53,9 +52,8 @@ class GoldRateHandler(BaseHandler):
             product_type=entities.product_type
         )
         
-        # Check for 18K chain unavailable message
-        if total_price == 0.0:
-            formatted_response = self.translator.get_response("18k_chain_unavailable", language)
+        # Get language from context
+        language = context.language
         
         return OutgoingResponse(
             text=formatted_response,
@@ -63,9 +61,10 @@ class GoldRateHandler(BaseHandler):
             action=ActionSignal.CONTINUE,
             confidence=1.0,
             context_update={
-                "last_query": "gold_rate",
+                "last_query": "gold_coin_rate",
                 "metal_type": "gold",
-                "purity": entities.purity.value if entities.purity else None,
+                "purity": "24K",
+                "product_type": entities.product_type.value if entities.product_type else "coin",
                 "weight": entities.weight
             }
         )

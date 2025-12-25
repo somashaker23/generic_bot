@@ -20,6 +20,24 @@ class Purity(Enum):
     PLATINUM_950 = "950"
 
 
+class ProductType(Enum):
+    """Supported product types"""
+    COIN = "coin"
+    BISCUIT = "biscuit"
+    CHAIN = "chain"
+    JEWELRY = "jewelry"
+    GENERAL = "general"
+
+
+class Region(Enum):
+    """Regions for state-wise rates"""
+    NORTH = "north"
+    SOUTH = "south"
+    EAST = "east"
+    WEST = "west"
+    CENTRAL = "central"
+
+
 @dataclass
 class ExtractedEntities:
     """Container for extracted entities"""
@@ -28,3 +46,6 @@ class ExtractedEntities:
     weight: float = 1.0  # Default weight in grams
     city: Optional[str] = None
     pincode: Optional[str] = None
+    state: Optional[str] = None
+    product_type: Optional[ProductType] = None
+    region: Optional[Region] = None

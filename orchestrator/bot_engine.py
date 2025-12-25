@@ -8,11 +8,15 @@ from nlu.intents import Intent
 from handlers.gold_rate_handler import GoldRateHandler
 from handlers.silver_rate_handler import SilverRateHandler
 from handlers.platinum_rate_handler import PlatinumRateHandler
+from handlers.gold_coin_handler import GoldCoinHandler
 from handlers.store_info_handler import StoreInfoHandler
 from handlers.greeting_handler import GreetingHandler
 from handlers.fallback_handler import FallbackHandler
+from handlers.out_of_scope_handler import OutOfScopeHandler
+from handlers.multi_intent_handler import MultiIntentHandler
 from services.rate_service import RateService
 from services.store_service import StoreService
+from localization.language_service import LanguageDetector, ResponseTranslator
 
 
 class BotEngine:
@@ -21,12 +25,13 @@ class BotEngine:
     Routes incoming events through the full pipeline.
     
     Steps:
-    1. Build context
-    2. Classify intent
-    3. Resolve entities
-    4. Select handler
-    5. Build response
-    6. Apply transfer rules
+    1. Detect language
+    2. Build context
+    3. Classify intent
+    4. Resolve entities
+    5. Select handler
+    6. Build response
+    7. Apply transfer rules
     """
     
     def __init__(
@@ -38,24 +43,53 @@ class BotEngine:
         self.rate_service = rate_service or RateService()
         self.store_service = store_service or StoreService()
         
+        # Initialize language services
+        self.language_detector = LanguageDetector()
+        self.translator = ResponseTranslator()
+        
         # Initialize NLU components
         self.intent_classifier = IntentClassifier()
         self.entity_resolver = EntityResolver()
         
         # Initialize handlers
         self.handlers = {
-            Intent.GOLD_RATE: GoldRateHandler(self.rate_service),
-            Intent.SILVER_RATE: SilverRateHandler(self.rate_service),
-            Intent.PLATINUM_RATE: PlatinumRateHandler(self.rate_service),
-            Intent.STORE_TIMINGS: StoreInfoHandler(self.store_service),
-            Intent.STORE_ADDRESS: StoreInfoHandler(self.store_service),
-            Intent.GREETING: GreetingHandler(),
-            Intent.FALLBACK: FallbackHandler(),
-            Intent.TRANSFER_REQUEST: FallbackHandler(),  # Reuse fallback for transfer
+            Intent.GOLD_RATE: GoldRateHandler(self.rate_service, self.translator),
+            Intent.SILVER_RATE: SilverRateHandler(self.rate_service, self.translator),
+            Intent.PLATINUM_RATE: PlatinumRateHandler(self.rate_service, self.translator),
+            Intent.GOLD_COIN_RATE: GoldCoinHandler(self.rate_service, self.translator),
+            Intent.STORE_TIMINGS: StoreInfoHandler(self.store_service, self.translator),
+            Intent.STORE_ADDRESS: StoreInfoHandler(self.store_service, self.translator),
+            Intent.GREETING: GreetingHandler(self.translator),
+            Intent.FALLBACK: FallbackHandler(self.translator),
+            Intent.OUT_OF_SCOPE: OutOfScopeHandler(self.translator),
+            Intent.MULTI_INTENT: MultiIntentHandler(self.translator),
+            Intent.TRANSFER_REQUEST: self._create_transfer_handler(),
         }
         
         # Context storage (in-memory for now)
         self.contexts: Dict[str, ConversationContext] = {}
+    
+    def _create_transfer_handler(self):
+        """Create a simple transfer handler"""
+        class TransferHandler:
+            def __init__(self, translator):
+                self.translator = translator
+            
+            def can_handle(self, intent):
+                return intent == Intent.TRANSFER_REQUEST
+            
+            def handle(self, context, entities):
+                language = context.language
+                text = self.translator.get_response("transfer_request", language)
+                return OutgoingResponse(
+                    text=text,
+                    language=language,
+                    action=ActionSignal.TRANSFER_TO_AGENT,
+                    confidence=1.0,
+                    context_update={"transfer_reason": "user_request"}
+                )
+        
+        return TransferHandler(self.translator)
     
     def process_event(self, event: IncomingEvent) -> OutgoingResponse:
         """
@@ -67,6 +101,11 @@ class BotEngine:
         Returns:
             OutgoingResponse with text and action signal
         """
+        # Step 0: Detect language from user text
+        detected_language = self.language_detector.detect_language(event.user_text)
+        if event.language == "en" and detected_language != "en":
+            event.language = detected_language
+        
         # Step 1: Build/update context
         context = self._get_or_create_context(event)
         context.update_from_event(event)
@@ -89,23 +128,14 @@ class BotEngine:
         
         # Step 6: Apply transfer rules
         if context.should_transfer() and response.action != ActionSignal.TRANSFER_TO_AGENT:
+            language = context.language
+            transfer_text = self.translator.get_response("transfer", language)
             response = OutgoingResponse(
-                text=(
-                    "I notice we've been having some difficulty. "
-                    "Let me connect you with a customer service representative."
-                ),
+                text=transfer_text,
+                language=language,
                 action=ActionSignal.TRANSFER_TO_AGENT,
                 confidence=0.0,
                 context_update={"transfer_reason": "context_rules"}
-            )
-        
-        # Handle explicit transfer requests
-        if intent == Intent.TRANSFER_REQUEST:
-            response = OutgoingResponse(
-                text="Connecting you to a customer service representative. Please hold.",
-                action=ActionSignal.TRANSFER_TO_AGENT,
-                confidence=1.0,
-                context_update={"transfer_reason": "user_request"}
             )
         
         # Update context from response

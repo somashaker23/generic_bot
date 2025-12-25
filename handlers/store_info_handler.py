@@ -4,13 +4,15 @@ from nlu.entities import ExtractedEntities
 from contracts.outgoing_response import OutgoingResponse, ActionSignal
 from handlers.base_handler import BaseHandler
 from services.store_service import StoreService
+from localization.language_service import ResponseTranslator
 
 
 class StoreInfoHandler(BaseHandler):
     """Handler for STORE_TIMINGS and STORE_ADDRESS intents"""
     
-    def __init__(self, store_service: StoreService = None):
+    def __init__(self, store_service: StoreService = None, translator: ResponseTranslator = None):
         self.store_service = store_service or StoreService()
+        self.translator = translator or ResponseTranslator()
     
     def can_handle(self, intent: Intent) -> bool:
         """Check if this handler can handle the intent"""
@@ -27,8 +29,10 @@ class StoreInfoHandler(BaseHandler):
         Logic:
         - Check if city or pincode is provided
         - Ask clarification if both missing
-        - Else lookup store info and return
+        - Else lookup store info and return in user's language
         """
+        language = context.language
+        
         # Try to find store
         store = self.store_service.get_nearest_store(
             city=entities.city,
@@ -38,8 +42,10 @@ class StoreInfoHandler(BaseHandler):
         if not store:
             # No store found - ask for clarification
             context.mark_clarification()
+            need_location_text = self.translator.get_response("need_location", language)
             return OutgoingResponse(
-                text="I couldn't find a store. Could you please provide your city or pincode?",
+                text=need_location_text,
+                language=language,
                 action=ActionSignal.CLARIFY,
                 confidence=0.5,
                 context_update={"needs_location": True}
@@ -47,12 +53,13 @@ class StoreInfoHandler(BaseHandler):
         
         # Determine which info to return
         if context.last_intent == Intent.STORE_TIMINGS.value:
-            response_text = self.store_service.format_store_timings(store)
+            response_text = self.store_service.format_store_timings(store, language)
         else:  # STORE_ADDRESS
-            response_text = self.store_service.format_store_address(store)
+            response_text = self.store_service.format_store_address(store, language)
         
         return OutgoingResponse(
             text=response_text,
+            language=language,
             action=ActionSignal.CONTINUE,
             confidence=1.0,
             context_update={

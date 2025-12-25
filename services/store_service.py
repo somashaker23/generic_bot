@@ -21,28 +21,47 @@ class StoreService:
         self.store_data = store_data or self._default_store_data()
     
     def _default_store_data(self) -> list:
-        """Default store data"""
+        """Default store data with Kalyan Jewellers standard timings"""
         return [
             {
                 "city": "Mumbai",
                 "pincode": "400001",
-                "address": "123 Gold Street, Fort, Mumbai - 400001",
-                "timings": "9:00 AM - 8:00 PM, Monday to Sunday",
+                "address": "Kalyan Jewellers, 123 Gold Street, Fort, Mumbai - 400001",
+                "timings": "11:00 AM - 08:30 PM, Monday to Sunday",
+                "last_walkin": "08:20 PM",
                 "phone": "+91-9876543210"
             },
             {
                 "city": "Delhi",
                 "pincode": "110001",
-                "address": "456 Silver Avenue, Connaught Place, Delhi - 110001",
-                "timings": "10:00 AM - 9:00 PM, Monday to Sunday",
+                "address": "Kalyan Jewellers, 456 Silver Avenue, Connaught Place, Delhi - 110001",
+                "timings": "11:00 AM - 08:30 PM, Monday to Sunday",
+                "last_walkin": "08:20 PM",
                 "phone": "+91-9876543211"
             },
             {
                 "city": "Bangalore",
                 "pincode": "560001",
-                "address": "789 Platinum Road, MG Road, Bangalore - 560001",
-                "timings": "9:30 AM - 8:30 PM, Monday to Sunday",
+                "address": "Kalyan Jewellers, 789 Platinum Road, MG Road, Bangalore - 560001",
+                "timings": "11:00 AM - 08:30 PM, Monday to Sunday",
+                "last_walkin": "08:20 PM",
                 "phone": "+91-9876543212"
+            },
+            {
+                "city": "Chennai",
+                "pincode": "600001",
+                "address": "Kalyan Jewellers, T Nagar, Chennai - 600001",
+                "timings": "11:00 AM - 08:30 PM, Monday to Sunday",
+                "last_walkin": "08:20 PM",
+                "phone": "+91-9876543213"
+            },
+            {
+                "city": "Hyderabad",
+                "pincode": "500001",
+                "address": "Kalyan Jewellers, Banjara Hills, Hyderabad - 500001",
+                "timings": "11:00 AM - 08:30 PM, Monday to Sunday",
+                "last_walkin": "08:20 PM",
+                "phone": "+91-9876543214"
             }
         ]
     
@@ -103,16 +122,30 @@ class StoreService:
         # Return first store as default if nothing matches
         return self.store_data[0] if self.store_data else None
     
-    def format_store_timings(self, store: Dict) -> str:
+    def format_store_timings(self, store: Dict, language: str = "en") -> str:
         """Format store timings for response"""
+        if language == "hi":
+            return (
+                f"स्टोर का समय:\n"
+                f"{store['timings']}\n"
+                f"अंतिम प्रवेश: {store['last_walkin']}\n"
+                f"स्थान: {store['city']}"
+            )
         return (
             f"Store Timings:\n"
             f"{store['timings']}\n"
+            f"Last walk-in: {store['last_walkin']}\n"
             f"Location: {store['city']}"
         )
     
-    def format_store_address(self, store: Dict) -> str:
+    def format_store_address(self, store: Dict, language: str = "en") -> str:
         """Format store address for response"""
+        if language == "hi":
+            return (
+                f"स्टोर का पता:\n"
+                f"{store['address']}\n"
+                f"फोन: {store['phone']}"
+            )
         return (
             f"Store Address:\n"
             f"{store['address']}\n"
