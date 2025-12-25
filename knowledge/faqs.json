@@ -1,0 +1,102 @@
+[
+  {
+    "category": "gold_rate",
+    "patterns": [
+      "gold rate",
+      "gold price",
+      "price of gold",
+      "how much is gold",
+      "current gold rate",
+      "gold today",
+      "gold per gram"
+    ],
+    "response": "For current gold rates, please ask about specific purity (22K, 24K, or 18K). Our rates are updated daily."
+  },
+  {
+    "category": "silver_rate",
+    "patterns": [
+      "silver rate",
+      "silver price",
+      "price of silver",
+      "how much is silver",
+      "current silver rate",
+      "silver today",
+      "silver per gram"
+    ],
+    "response": "For current silver rates, please specify the weight. Our rates are updated daily."
+  },
+  {
+    "category": "platinum_rate",
+    "patterns": [
+      "platinum rate",
+      "platinum price",
+      "price of platinum",
+      "how much is platinum",
+      "current platinum rate",
+      "platinum today"
+    ],
+    "response": "For current platinum rates, please specify the weight. Our rates are updated daily."
+  },
+  {
+    "category": "store_timings",
+    "patterns": [
+      "store hours",
+      "opening hours",
+      "timings",
+      "when are you open",
+      "store time",
+      "what time do you open",
+      "shop hours",
+      "working hours"
+    ],
+    "response": "Our stores are generally open from 9 AM to 8 PM, Monday to Sunday. For specific store timings, please provide your city or pincode."
+  },
+  {
+    "category": "store_address",
+    "patterns": [
+      "store address",
+      "location",
+      "where are you",
+      "address",
+      "store location",
+      "shop address",
+      "directions",
+      "how to reach"
+    ],
+    "response": "We have stores in multiple cities. Please provide your city or pincode to get the nearest store address."
+  },
+  {
+    "category": "contact",
+    "patterns": [
+      "contact number",
+      "phone number",
+      "call",
+      "customer care",
+      "support number",
+      "helpline"
+    ],
+    "response": "For the contact number of your nearest store, please provide your city or pincode."
+  },
+  {
+    "category": "purity_info",
+    "patterns": [
+      "what is 916",
+      "916 gold",
+      "difference between 22k and 24k",
+      "purity",
+      "karat",
+      "carat"
+    ],
+    "response": "Gold purity guide:\n• 24K (999) - 99.9% pure gold\n• 22K (916) - 91.6% pure gold\n• 18K - 75% pure gold\n916 gold is the same as 22K gold."
+  },
+  {
+    "category": "general",
+    "patterns": [
+      "what do you sell",
+      "products",
+      "services",
+      "what can I buy"
+    ],
+    "response": "We offer a wide range of gold, silver, and platinum jewelry. You can ask me about current rates, store locations, and timings."
+  }
+]
